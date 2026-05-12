@@ -1,0 +1,26 @@
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:             Log_Demand   R-squared:                       0.166
+Model:                            OLS   Adj. R-squared:                  0.166
+Method:                 Least Squares   F-statistic:                 3.946e+04
+Date:                Tue, 12 May 2026   Prob (F-statistic):               0.00
+Time:                        11:02:27   Log-Likelihood:            -6.0418e+05
+No. Observations:              397884   AIC:                         1.208e+06
+Df Residuals:                  397881   BIC:                         1.208e+06
+Df Model:                           2                                         
+Covariance Type:            nonrobust                                         
+==============================================================================
+                 coef    std err          t      P>|t|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          1.9244      0.005    399.104      0.000       1.915       1.934
+Log_Price     -0.4945      0.003   -163.117      0.000      -0.500      -0.489
+Promotion      0.0819      0.006     14.542      0.000       0.071       0.093
+==============================================================================
+Omnibus:                     6376.647   Durbin-Watson:                   0.550
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):             8067.399
+Skew:                           0.234   Prob(JB):                         0.00
+Kurtosis:                       3.518   Cond. No.                         5.97
+==============================================================================
+
+Notes:
+[1] Standard Errors assume that the covariance matrix of the errors is correctly specified.

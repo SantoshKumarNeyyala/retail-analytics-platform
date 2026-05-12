@@ -1,0 +1,8 @@
+Model,Metric,Score
+LSTM Forecasting,MAPE,0.4051
+Prophet Forecasting,MAPE,0.4498
+Ensemble Forecasting,MAPE,0.4275
+XGBoost Churn,AUC,1.0
+LightGBM Churn,AUC,1.0
+Customer Segmentation,Silhouette Score,0.8958
+Price Elasticity,R²,0.1655
