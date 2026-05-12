@@ -1,0 +1,32 @@
+.main {
+    background-color: #F8F9FA;
+}
+
+h1, h2, h3 {
+    color: #E84E1B;
+    font-weight: 700;
+}
+
+.stButton>button {
+    background-color: #E84E1B;
+    color: white;
+    border-radius: 10px;
+    border: none;
+    padding: 0.5rem 1rem;
+}
+
+.stButton>button:hover {
+    background-color: #F7941D;
+    color: white;
+}
+
+.metric-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+}
+
+.sidebar .sidebar-content {
+    background-color: #FBBA13;
+}

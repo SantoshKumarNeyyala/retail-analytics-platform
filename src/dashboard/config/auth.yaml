@@ -1,0 +1,20 @@
+credentials:
+  usernames:
+    admin:
+      email: admin@retail.com
+      name: Admin User
+      password: admin123
+
+    analyst:
+      email: analyst@retail.com
+      name: Analyst User
+      password: analyst123
+
+cookie:
+  expiry_days: 7
+  key: retail_dashboard_cookie
+  name: retail_dashboard
+
+preauthorized:
+  emails:
+    - admin@retail.com
