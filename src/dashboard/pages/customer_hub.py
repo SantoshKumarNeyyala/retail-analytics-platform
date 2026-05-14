@@ -1,132 +1,148 @@
 import streamlit as st
 import pandas as pd
-import plotly.express as px
-import numpy as np
+import plotly.graph_objects as go
 
 
 def show_page():
 
-    st.title("👥 Customer Hub")
+    st.title("📈 Demand Intelligence")
 
-    # ==========================================
+    # =====================================
     # LOAD DATA
-    # ==========================================
+    # =====================================
 
-    rfm = pd.read_parquet("data/silver/rfm.parquet")
+    df = pd.read_parquet("data/silver/retail_features.parquet")
 
-    # ==========================================
-    # MOCK CHURN
-    # ==========================================
+    # =====================================
+    # FILTERS
+    # =====================================
 
-    rfm["ChurnRisk"] = np.where(
-        rfm["Recency"] > 90, "High", np.where(rfm["Recency"] > 45, "Medium", "Low")
+    st.sidebar.subheader("Forecast Filters")
+
+    countries = sorted(df["Country"].dropna().unique())
+
+    selected_country = st.sidebar.selectbox(
+        "Select Country",
+        countries,
     )
 
-    # ==========================================
-    # CUSTOMER SEGMENTS
-    # ==========================================
+    filtered_df = df[df["Country"] == selected_country]
 
-    rfm["Segment"] = pd.qcut(
-        rfm["Monetary"], q=4, labels=["Bronze", "Silver", "Gold", "Platinum"]
+    products = sorted(filtered_df["Description"].dropna().unique())
+
+    selected_product = st.sidebar.selectbox(
+        "Select Product",
+        products,
     )
 
-    # ==========================================
-    # FILTER
-    # ==========================================
+    product_df = filtered_df[filtered_df["Description"] == selected_product]
 
-    segment = st.sidebar.selectbox("Select Segment", rfm["Segment"].unique())
+    # =====================================
+    # DAILY SALES
+    # =====================================
 
-    filtered = rfm[rfm["Segment"] == segment]
-
-    # ==========================================
-    # KPI
-    # ==========================================
-
-    col1, col2, col3 = st.columns(3)
-
-    col1.metric("Customers", filtered["CustomerID"].nunique())
-
-    col2.metric("Avg Monetary", f"${filtered['Monetary'].mean():,.2f}")
-
-    col3.metric("Avg Frequency", round(filtered["Frequency"].mean(), 2))
-
-    st.divider()
-
-    # ==========================================
-    # CHURN DISTRIBUTION
-    # ==========================================
-
-    st.subheader("⚠️ Churn Risk Distribution")
-
-    fig = px.histogram(
-        filtered,
-        x="ChurnRisk",
-        color="ChurnRisk",
+    daily_sales = (
+        product_df.groupby(product_df["InvoiceDate"].dt.date)["Quantity"]
+        .sum()
+        .reset_index()
     )
 
-    st.plotly_chart(fig, use_container_width=True)
+    daily_sales.columns = [
+        "Date",
+        "Actual Sales",
+    ]
 
-    # ==========================================
-    # RFM SCATTER
-    # ==========================================
+    # =====================================
+    # SIMPLE FORECAST
+    # =====================================
 
-    st.subheader("📊 Customer Segmentation")
+    daily_sales["Forecast"] = daily_sales["Actual Sales"].rolling(3).mean()
 
-    fig2 = px.scatter(
-        filtered,
-        x="Frequency",
-        y="Monetary",
-        color="ChurnRisk",
-        size="Recency",
-        hover_data=["CustomerID"],
+    daily_sales["Forecast"] = daily_sales["Forecast"].fillna(
+        daily_sales["Actual Sales"]
     )
 
-    st.plotly_chart(fig2, use_container_width=True)
+    # =====================================
+    # FORECAST CHART
+    # =====================================
 
-    # ==========================================
-    # CUSTOMER 360
-    # ==========================================
+    st.subheader("📊 Forecast vs Actual")
 
-    st.subheader("🧾 Customer 360 View")
+    fig = go.Figure()
 
-    customer = st.selectbox(
-        "Select Customer", filtered["CustomerID"].astype(str).unique()
+    fig.add_trace(
+        go.Scatter(
+            x=daily_sales["Date"],
+            y=daily_sales["Actual Sales"],
+            mode="lines",
+            name="Actual",
+        )
     )
 
-    customer_data = filtered[filtered["CustomerID"].astype(str) == customer]
-
-    st.dataframe(customer_data)
-
-    # ==========================================
-    # RETENTION ACTIONS
-    # ==========================================
-
-    st.subheader("🎯 Retention Recommendation")
-
-    risk = customer_data["ChurnRisk"].values[0]
-
-    if risk == "High":
-        st.error("Offer 25% discount + loyalty rewards immediately.")
-
-    elif risk == "Medium":
-        st.warning("Send personalized email campaign.")
-
-    else:
-        st.success("Customer is healthy and loyal.")
-
-    # ==========================================
-    # EXPORT
-    # ==========================================
-
-    st.subheader("📥 CRM Export")
-
-    csv = filtered.to_csv(index=False).encode("utf-8")
-
-    st.download_button(
-        label="Download Segment CSV",
-        data=csv,
-        file_name="customer_segment.csv",
-        mime="text/csv",
+    fig.add_trace(
+        go.Scatter(
+            x=daily_sales["Date"],
+            y=daily_sales["Forecast"],
+            mode="lines",
+            name="Forecast",
+        )
     )
 
-    st.success("✅ Customer Hub Loaded")
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+    )
+
+    # =====================================
+    # WHAT IF SIMULATOR
+    # =====================================
+
+    st.subheader("🧪 What-If Simulator")
+
+    price_change = st.slider(
+        "Price Change %",
+        -50,
+        50,
+        0,
+    )
+
+    promo = st.checkbox("Promotion Enabled")
+
+    base_forecast = daily_sales["Forecast"].mean()
+
+    adjusted_forecast = base_forecast * (1 - (price_change / 100) * 0.5)
+
+    if promo:
+
+        adjusted_forecast *= 1.2
+
+    st.metric(
+        "Predicted Demand",
+        f"{adjusted_forecast:.2f}",
+    )
+
+    # =====================================
+    # LEADERBOARD
+    # =====================================
+
+    st.subheader("🏆 Forecast Accuracy Leaderboard")
+
+    leaderboard = (
+        df.groupby("Description")["Quantity"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        .reset_index()
+    )
+
+    leaderboard.columns = [
+        "Product",
+        "Sales Volume",
+    ]
+
+    st.dataframe(
+        leaderboard,
+        use_container_width=True,
+    )
+
+    st.success("Demand Intelligence Loaded")

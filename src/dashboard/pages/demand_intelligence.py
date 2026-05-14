@@ -1,136 +1,127 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
-import numpy as np
+import plotly.express as px
 
 
 def show_page():
 
-    st.title("📈 Demand Intelligence")
+    st.title("📊 Executive Overview")
 
-    # ==========================================
+    # =========================
     # LOAD DATA
-    # ==========================================
+    # =========================
 
     df = pd.read_parquet("data/silver/retail_features.parquet")
 
-    # ==========================================
-    # FILTERS
-    # ==========================================
+    # =========================
+    # KPIs
+    # =========================
 
-    st.sidebar.header("Forecast Filters")
+    total_revenue = df["TotalPrice"].sum()
 
-    countries = df["Country"].dropna().unique()
+    total_orders = df["InvoiceNo"].nunique()
 
-    selected_country = st.sidebar.selectbox("Select Country", sorted(countries))
+    total_customers = df["CustomerID"].nunique()
 
-    filtered_df = df[df["Country"] == selected_country]
+    avg_order_value = total_revenue / total_orders
 
-    # ==========================================
-    # DAILY SALES
-    # ==========================================
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "💰 Revenue",
+        f"${total_revenue:,.0f}",
+    )
+
+    col2.metric(
+        "🧾 Orders",
+        total_orders,
+    )
+
+    col3.metric(
+        "👥 Customers",
+        total_customers,
+    )
+
+    col4.metric(
+        "📦 Avg Order Value",
+        f"${avg_order_value:,.2f}",
+    )
+
+    st.divider()
+
+    # =========================
+    # SALES TREND
+    # =========================
+
+    st.subheader("📈 Revenue Trend")
 
     daily_sales = (
-        filtered_df.groupby(filtered_df["InvoiceDate"].dt.date)["TotalPrice"]
+        df.groupby(df["InvoiceDate"].dt.date)["TotalPrice"].sum().reset_index()
+    )
+
+    fig_sales = px.line(
+        daily_sales,
+        x="InvoiceDate",
+        y="TotalPrice",
+        title="Daily Revenue",
+    )
+
+    st.plotly_chart(
+        fig_sales,
+        use_container_width=True,
+    )
+
+    # =========================
+    # COUNTRY SALES
+    # =========================
+
+    st.subheader("🌍 Revenue by Country")
+
+    country_sales = (
+        df.groupby("Country")["TotalPrice"]
         .sum()
+        .sort_values(ascending=False)
+        .head(10)
         .reset_index()
     )
 
-    daily_sales.columns = ["Date", "Actual"]
-
-    # ==========================================
-    # MOCK FORECAST
-    # ==========================================
-
-    np.random.seed(42)
-
-    daily_sales["Forecast"] = daily_sales["Actual"] * np.random.uniform(
-        0.9, 1.1, len(daily_sales)
+    fig_country = px.bar(
+        country_sales,
+        x="Country",
+        y="TotalPrice",
+        title="Top Countries",
     )
 
-    daily_sales["Upper"] = daily_sales["Forecast"] * 1.10
-    daily_sales["Lower"] = daily_sales["Forecast"] * 0.90
-
-    # ==========================================
-    # FORECAST CHART
-    # ==========================================
-
-    fig = go.Figure()
-
-    # Actual
-
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Actual"],
-            mode="lines",
-            name="Actual Sales",
-        )
+    st.plotly_chart(
+        fig_country,
+        use_container_width=True,
     )
 
-    # Forecast
+    # =========================
+    # TOP PRODUCTS
+    # =========================
 
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Forecast"],
-            mode="lines",
-            name="Forecast",
-        )
+    st.subheader("🏆 Top Products")
+
+    top_products = (
+        df.groupby("Description")["TotalPrice"]
+        .sum()
+        .sort_values(ascending=False)
+        .head(10)
+        .reset_index()
     )
 
-    # Upper Bound
-
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Upper"],
-            mode="lines",
-            line=dict(width=0),
-            showlegend=False,
-        )
+    fig_products = px.bar(
+        top_products,
+        x="TotalPrice",
+        y="Description",
+        orientation="h",
+        title="Top Products",
     )
 
-    # Lower Bound + fill
-
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Lower"],
-            mode="lines",
-            fill="tonexty",
-            name="Confidence Interval",
-            line=dict(width=0),
-        )
+    st.plotly_chart(
+        fig_products,
+        use_container_width=True,
     )
 
-    fig.update_layout(
-        title="Demand Forecast",
-        xaxis_title="Date",
-        yaxis_title="Revenue",
-        height=600,
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-
-    # ==========================================
-    # WHAT-IF SIMULATOR
-    # ==========================================
-
-    st.subheader("🧠 What-If Simulator")
-
-    promo_boost = st.slider("Promotion Impact %", 0, 100, 10)
-
-    simulated_forecast = daily_sales["Forecast"] * (1 + promo_boost / 100)
-
-    st.line_chart(simulated_forecast)
-
-    # ==========================================
-    # FORECAST TABLE
-    # ==========================================
-
-    st.subheader("📄 Forecast Table")
-
-    st.dataframe(daily_sales.head(20))
-
-    st.success("✅ Demand Intelligence Loaded")
+    st.success("Executive Overview Loaded Successfully")

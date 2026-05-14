@@ -1,7 +1,26 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 
-st.set_page_config(page_title="Enterprise Retail Analytics", layout="wide")
+from pages import (
+    executive_overview,
+    demand_intelligence,
+    customer_hub,
+    inventory_monitor,
+    mlops_monitor,
+)
+
+# =========================
+# PAGE CONFIG
+# =========================
+
+st.set_page_config(
+    page_title="Enterprise Retail Analytics",
+    layout="wide",
+)
+
+# =========================
+# SIDEBAR MENU
+# =========================
 
 with st.sidebar:
     selected = option_menu(
@@ -13,29 +32,31 @@ with st.sidebar:
             "Inventory Monitor",
             "MLOps Monitor",
         ],
-        icons=["bar-chart", "graph-up", "people", "boxes", "cpu"],
+        icons=[
+            "bar-chart",
+            "graph-up",
+            "people",
+            "boxes",
+            "cpu",
+        ],
         default_index=0,
     )
 
-if selected == "Executive Overview":
-    from pages.executive_overview import show_page
+# =========================
+# PAGE ROUTING
+# =========================
 
-    show_page()
+if selected == "Executive Overview":
+    executive_overview.show_page()
 
 elif selected == "Demand Intelligence":
-    from pages.demand_intelligence import show_page
-
-    show_page()
+    demand_intelligence.show_page()
 
 elif selected == "Customer Hub":
-    from pages.customer_hub import show_page
-
-    show_page()
+    customer_hub.show_page()
 
 elif selected == "Inventory Monitor":
-    st.title("📦 Inventory Monitor")
-    st.info("Coming in Day 18")
+    inventory_monitor.show_page()
 
 elif selected == "MLOps Monitor":
-    st.title("⚙️ MLOps Monitor")
-    st.info("Coming in Day 20")
+    mlops_monitor.show_page()
