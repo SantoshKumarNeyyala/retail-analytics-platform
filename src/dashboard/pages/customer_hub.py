@@ -1,148 +1,150 @@
 import streamlit as st
 import pandas as pd
-import plotly.graph_objects as go
+import plotly.express as px
 
 
 def show_page():
 
-    st.title("📈 Demand Intelligence")
+    st.title("👥 Customer Hub")
 
     # =====================================
     # LOAD DATA
     # =====================================
 
-    df = pd.read_parquet("data/silver/retail_features.parquet")
+    rfm = pd.read_parquet("data/silver/rfm.parquet")
 
     # =====================================
-    # FILTERS
+    # CREATE CHURN FLAG
     # =====================================
 
-    st.sidebar.subheader("Forecast Filters")
-
-    countries = sorted(df["Country"].dropna().unique())
-
-    selected_country = st.sidebar.selectbox(
-        "Select Country",
-        countries,
-    )
-
-    filtered_df = df[df["Country"] == selected_country]
-
-    products = sorted(filtered_df["Description"].dropna().unique())
-
-    selected_product = st.sidebar.selectbox(
-        "Select Product",
-        products,
-    )
-
-    product_df = filtered_df[filtered_df["Description"] == selected_product]
-
-    # =====================================
-    # DAILY SALES
-    # =====================================
-
-    daily_sales = (
-        product_df.groupby(product_df["InvoiceDate"].dt.date)["Quantity"]
-        .sum()
-        .reset_index()
-    )
-
-    daily_sales.columns = [
-        "Date",
-        "Actual Sales",
-    ]
-
-    # =====================================
-    # SIMPLE FORECAST
-    # =====================================
-
-    daily_sales["Forecast"] = daily_sales["Actual Sales"].rolling(3).mean()
-
-    daily_sales["Forecast"] = daily_sales["Forecast"].fillna(
-        daily_sales["Actual Sales"]
+    rfm["ChurnRisk"] = rfm["Recency"].apply(
+        lambda x: "High Risk" if x > 90 else "Low Risk"
     )
 
     # =====================================
-    # FORECAST CHART
+    # KPI SECTION
     # =====================================
 
-    st.subheader("📊 Forecast vs Actual")
+    total_customers = len(rfm)
 
-    fig = go.Figure()
+    high_risk = len(rfm[rfm["ChurnRisk"] == "High Risk"])
 
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Actual Sales"],
-            mode="lines",
-            name="Actual",
-        )
+    avg_monetary = rfm["Monetary"].mean()
+
+    avg_frequency = rfm["Frequency"].mean()
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "👥 Customers",
+        total_customers,
     )
 
-    fig.add_trace(
-        go.Scatter(
-            x=daily_sales["Date"],
-            y=daily_sales["Forecast"],
-            mode="lines",
-            name="Forecast",
-        )
+    col2.metric(
+        "⚠️ High Risk",
+        high_risk,
+    )
+
+    col3.metric(
+        "💰 Avg Monetary",
+        f"${avg_monetary:.2f}",
+    )
+
+    col4.metric(
+        "🛒 Avg Frequency",
+        f"{avg_frequency:.2f}",
+    )
+
+    st.divider()
+
+    # =====================================
+    # CHURN DISTRIBUTION
+    # =====================================
+
+    st.subheader("⚠️ Churn Risk Distribution")
+
+    churn_fig = px.histogram(
+        rfm,
+        x="ChurnRisk",
+        color="ChurnRisk",
+        title="Customer Churn Risk",
     )
 
     st.plotly_chart(
-        fig,
+        churn_fig,
         use_container_width=True,
     )
 
     # =====================================
-    # WHAT IF SIMULATOR
+    # RFM SCATTER
     # =====================================
 
-    st.subheader("🧪 What-If Simulator")
+    st.subheader("📊 RFM Customer Segments")
 
-    price_change = st.slider(
-        "Price Change %",
-        -50,
-        50,
-        0,
+    scatter_fig = px.scatter(
+        rfm,
+        x="Frequency",
+        y="Monetary",
+        color="Recency",
+        hover_data=["CustomerID"],
+        title="Customer Segmentation",
     )
 
-    promo = st.checkbox("Promotion Enabled")
-
-    base_forecast = daily_sales["Forecast"].mean()
-
-    adjusted_forecast = base_forecast * (1 - (price_change / 100) * 0.5)
-
-    if promo:
-
-        adjusted_forecast *= 1.2
-
-    st.metric(
-        "Predicted Demand",
-        f"{adjusted_forecast:.2f}",
+    st.plotly_chart(
+        scatter_fig,
+        use_container_width=True,
     )
 
     # =====================================
-    # LEADERBOARD
+    # CUSTOMER SELECTOR
     # =====================================
 
-    st.subheader("🏆 Forecast Accuracy Leaderboard")
+    st.subheader("🔍 Customer 360 View")
 
-    leaderboard = (
-        df.groupby("Description")["Quantity"]
-        .sum()
-        .sort_values(ascending=False)
-        .head(10)
-        .reset_index()
+    customer_ids = rfm["CustomerID"].astype(str).unique()
+
+    selected_customer = st.selectbox(
+        "Select Customer",
+        customer_ids,
     )
 
-    leaderboard.columns = [
-        "Product",
-        "Sales Volume",
-    ]
+    customer_data = rfm[rfm["CustomerID"].astype(str) == selected_customer]
 
     st.dataframe(
-        leaderboard,
+        customer_data,
         use_container_width=True,
     )
 
-    st.success("Demand Intelligence Loaded")
+    # =====================================
+    # RETENTION ACTIONS
+    # =====================================
+
+    st.subheader("🎯 Retention Recommendations")
+
+    if customer_data["Recency"].values[0] > 90:
+
+        st.error("High churn risk detected")
+
+        st.write(
+            """
+            Recommended Actions:
+            - Send discount coupon
+            - Trigger email campaign
+            - Offer loyalty rewards
+            """
+        )
+
+    else:
+
+        st.success("Customer engagement healthy")
+
+        st.write(
+            """
+            Recommended Actions:
+            - Upsell premium products
+            - Recommend bundles
+            - Continue loyalty program
+            """
+        )
+
+    st.success("Customer Hub Loaded Successfully")
