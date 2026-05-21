@@ -1,4 +1,6 @@
 from fastapi import FastAPI
+from slowapi.middleware import SlowAPIMiddleware
+from src.api.security.rate_limit import limiter
 
 from src.api.routes import (
     health,
@@ -11,6 +13,9 @@ app = FastAPI(
     title="Enterprise Retail Analytics API",
     version="3.0",
 )
+
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 app.include_router(health.router)
 
