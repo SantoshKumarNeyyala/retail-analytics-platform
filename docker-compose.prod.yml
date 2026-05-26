@@ -2,22 +2,37 @@ version: "3.9"
 
 services:
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+
+    ports:
+      - "6379:6379"
+
+    restart: always
+
   fastapi:
     build:
       context: .
-      dockerfile: docker/fastapi.Dockerfile
+      dockerfile: docker/fastapi/Dockerfile
 
     ports:
       - "8000:8000"
+
+    depends_on:
+      - redis
 
     restart: always
 
   streamlit:
     build:
       context: .
-      dockerfile: docker/streamlit.Dockerfile
+      dockerfile: docker/streamlit/Dockerfile
 
     ports:
       - "8501:8501"
+
+    depends_on:
+      - fastapi
 
     restart: always

@@ -1,0 +1,52 @@
+namespace: retail-platform
+
+fastapi:
+  replicaCount: 2
+
+  image:
+    repository: retail-analytics-platform-fastapi
+    tag: latest
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+streamlit:
+  replicaCount: 1
+
+  image:
+    repository: retail-analytics-platform-streamlit
+    tag: latest
+
+  service:
+    type: ClusterIP
+    port: 8501
+
+redis:
+  replicaCount: 1
+
+  image:
+    repository: redis
+    tag: latest
+
+  service:
+    port: 6379
+
+resources:
+  fastapi:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  streamlit:
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+
+    limits:
+      cpu: "500m"
+      memory: "512Mi"

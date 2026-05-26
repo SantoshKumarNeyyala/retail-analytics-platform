@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: streamlit
+
+spec:
+  replicas: {{ .Values.streamlit.replicaCount }}
+
+  selector:
+    matchLabels:
+      app: streamlit
+
+  template:
+    metadata:
+      labels:
+        app: streamlit
+
+    spec:
+      containers:
+        - name: streamlit
+
+          image: "{{ .Values.streamlit.image.repository }}:{{ .Values.streamlit.image.tag }}"
+          imagePullPolicy: Never
+
+          envFrom:
+          - configMapRef:
+              name: retail-platform-config
+          - secretRef:
+              name: retail-platform-secret
+          
+          ports:
+            - containerPort: 8501
