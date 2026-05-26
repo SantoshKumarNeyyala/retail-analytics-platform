@@ -57,6 +57,10 @@ jobs:
       - name: Run Tests
         run: |
           pytest
+      
+      - name: Model Validation Gate
+        run: |
+          python scripts/model_validation.py
 
   docker-build:
     runs-on: ubuntu-latest
