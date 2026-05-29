@@ -9,7 +9,7 @@ venv
 
 mlruns
 artifacts
-data
+
 
 .git
 .gitignore

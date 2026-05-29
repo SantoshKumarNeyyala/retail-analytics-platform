@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+
+metadata:
+  name: retail-platform
+  namespace: argocd
+
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/SantoshKumarNeyyala/retail-analytics-platform.git
+    targetRevision: main
+    path: k8s/helm/retail-platform
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: retail-platform
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
