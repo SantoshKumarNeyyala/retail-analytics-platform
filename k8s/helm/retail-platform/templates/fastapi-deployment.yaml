@@ -39,6 +39,4 @@ spec:
           - configMapRef:
               name: retail-platform-config
           - secretRef:
-              name: retail-platform-secret
-          - secretRef:
               name: retail-secret

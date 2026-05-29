@@ -27,7 +27,7 @@ spec:
           - configMapRef:
               name: retail-platform-config
           - secretRef:
-              name: retail-platform-secret
+              name: retail-secret
           
           ports:
             - containerPort: 8501
