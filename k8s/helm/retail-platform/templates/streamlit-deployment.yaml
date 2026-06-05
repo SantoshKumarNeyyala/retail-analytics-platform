@@ -24,10 +24,18 @@ spec:
           imagePullPolicy: Never
 
           envFrom:
-          - configMapRef:
-              name: retail-platform-config
-          - secretRef:
-              name: retail-secret
-          
+            - configMapRef:
+                name: retail-platform-config
+            - secretRef:
+                name: retail-secret
+
           ports:
             - containerPort: 8501
+
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
