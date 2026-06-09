@@ -1,8 +1,12 @@
 fastapi
 uvicorn
 streamlit
+streamlit-option-menu
+streamlit-authenticator
 pandas
 numpy
+plotly
+pyarrow
 scikit-learn
 redis
 pytest
