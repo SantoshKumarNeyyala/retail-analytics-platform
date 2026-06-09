@@ -8,3 +8,5 @@ mlruns/
 .ruff_cache/
 streamlit.tar
 *.tar
+.env.production
+.env*
