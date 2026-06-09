@@ -11,7 +11,7 @@ def show_page():
     # LOAD DATA
     # =========================
 
-    df = pd.read_parquet("data/silver/retail_features.parquet")
+    df = pd.read_parquet("/app/data/silver/retail_features.parquet")
 
     # =========================
     # KPIs

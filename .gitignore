@@ -6,3 +6,5 @@ mlruns/
 .venv/
 .pytest_cache/
 .ruff_cache/
+streamlit.tar
+*.tar
