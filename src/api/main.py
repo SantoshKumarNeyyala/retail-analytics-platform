@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.responses import Response
 from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
 
+# noqa: F401
+import src.monitoring.prometheus_metrics  # noqa: F401
 from slowapi.middleware import SlowAPIMiddleware
 from src.api.security.rate_limit import limiter
 
