@@ -1,5 +1,7 @@
 from prometheus_client import Gauge
 
+print("PROMETHEUS CUSTOM METRICS LOADED")
+
 model_drift_score = Gauge(
     "model_drift_score",
     "Current model drift score",
