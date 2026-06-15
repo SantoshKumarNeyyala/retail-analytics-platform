@@ -1,5 +1,7 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
+import os
+
 
 from pages import (
     executive_overview,
@@ -8,6 +10,14 @@ from pages import (
     inventory_monitor,
     mlops_monitor,
 )
+
+st.write("Current Directory:", os.getcwd())
+
+if os.path.exists("/app/data/silver/retail_features.parquet"):
+    st.success("Parquet file found")
+else:
+    st.error("Parquet file NOT found")
+
 
 # =========================
 # PAGE CONFIG
