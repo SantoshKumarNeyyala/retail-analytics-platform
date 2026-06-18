@@ -13,3 +13,4 @@ pytest
 ruff
 black
 httpx
+prometheus-client
