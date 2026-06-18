@@ -56,7 +56,7 @@ jobs:
 
       - name: Run Tests
         run: |
-          pytest
+          poetry run pytest
       
       - name: Model Validation Gate
         run: |
